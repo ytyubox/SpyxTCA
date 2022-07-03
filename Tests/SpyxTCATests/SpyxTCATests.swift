@@ -23,7 +23,6 @@ class Spy {
   private var attemptToFulfill: ((Result<String, LoadError>) -> Void)?
   func response(_ stub: String) {
     attemptToFulfill?(.success(stub))
-    attemptToFulfill = nil
   }
   func makeEnvironment() -> Environment {
     Environment {
