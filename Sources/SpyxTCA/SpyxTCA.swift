@@ -23,9 +23,11 @@ public struct LoadError: LocalizedError, Equatable {
 
 public struct Environment {
   public var load: () -> Effect<String, Error>
+  public var scheduler: AnySchedulerOf<DispatchQueue>
 
-  public init(load: @escaping () -> Effect<String, Error>) {
+  public init(load: @escaping () -> Effect<String, Error>, scheduler: AnySchedulerOf<DispatchQueue>) {
     self.load = load
+    self.scheduler = scheduler
   }
 }
 
@@ -34,6 +36,9 @@ public let reducer = Reducer<Load, LoadAction, Environment> { state, action, env
     case .load:
       state.description = "loading"
       return environment.load()
+        .timeout(5, scheduler: environment.scheduler, customError: {
+          LoadError(errorDescription: "timeout")
+        })
         .catchToEffect()
         .map { result in
           LoadAction.receive(result.mapError { LoadError(errorDescription: $0.localizedDescription) })
