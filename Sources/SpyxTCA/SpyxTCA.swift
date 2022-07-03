@@ -42,6 +42,7 @@ public let reducer = Reducer<Load, LoadAction, Environment> { state, action, env
       state.description = result
       return .none
     case .receive(.failure(_)):
+      state = Load()
       return .none
   }
 }
