@@ -3,8 +3,8 @@ import ComposableArchitecture
 public struct Load: Equatable {
   public var description: String
 
-  public init(description: String) {
-    self.description = description
+  public init() {
+    self.description = "hello world!"
   }
 }
 
@@ -29,11 +29,19 @@ public struct Environment {
   }
 }
 
-public let reducer = Reducer<Load, LoadAction, Environment> { _, action, _ in
+public let reducer = Reducer<Load, LoadAction, Environment> { state, action, environment in
   switch action {
     case .load:
+      state.description = "loading"
+      return environment.load()
+        .catchToEffect()
+        .map { result in
+          LoadAction.receive(result.mapError { LoadError(errorDescription: $0.localizedDescription) })
+        }
+    case let .receive(.success(result)):
+      state.description = result
       return .none
-    case .receive(let result):
+    case .receive(.failure(_)):
       return .none
   }
 }
